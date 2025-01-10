@@ -26,6 +26,12 @@ jobs:
           mingw-w64-x86_64-binutils
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-openmp
+    - name: Resolve safe_handle ambiguity
+      run: |
+        $filePath = "D:/a/SnowClient/SnowClient/build/_deps/directxtk-src/Audio/WAVFileReader.cpp"
+        $content = Get-Content -Path $filePath
+        $newContent = $content -replace 'safe_handle\((.*?)\)', 'DirectX::safe_handle($1)'
+        Set-Content -Path $filePath -Value $newContent
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release
     - name: Build
