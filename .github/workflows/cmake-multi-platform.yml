@@ -34,13 +34,13 @@ jobs:
         Get-ChildItem Env:
     - name: Resolve safe_handle ambiguity
       run: |
-        $filePath = Join-Path -Path $PWD -ChildPath "build/_deps/directxtk-src/Audio/WAVFileReader.cpp"
-        if (Test-Path -Path $filePath) {
-            $content = Get-Content -Path $filePath
-            $newContent = $content -replace 'safe_handle\((.*?)\)', 'DirectX::safe_handle($1)'
-            Set-Content -Path $filePath -Value $newContent
-        } else {
-            Write-Warning "File $filePath not found."
+        $searchPattern = "safe_handle\((.*?)\)"
+        $replacement = "DirectX::safe_handle($1)"
+        $files = Get-ChildItem -Path. -Recurse -Include *.cpp, *.cxx
+        foreach ($file in $files) {
+            $content = Get-Content -Path $file.FullName
+            $newContent = $content -replace $searchPattern, $replacement
+            Set-Content -Path $file.FullName -Value $newContent
         }
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release
