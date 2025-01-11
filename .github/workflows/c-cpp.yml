@@ -2,13 +2,13 @@ name: Solstice Build and Test Workflow
 
 on:
   push:
-    branches: [ main ]  # 可根据实际情况调整触发的分支
+    branches: [ main ]  
   pull_request:
     branches: [ main ]
 
 jobs:
   build:
-    runs-on: windows-latest  # 根据项目实际需求调整运行环境
+    runs-on: windows-latest  
 
     steps:
     - name: Checkout code
@@ -20,14 +20,20 @@ jobs:
         update: true
         install: pacman -S --noconfirm mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils
 
+    - name: Patch source code to resolve function call ambiguity
+      run: |
+        # 假设需要在源文件中明确指定调用 DirectX::safe_handle
+        sed -i 's/safe_handle(/DirectX::safe_handle(/g' $(find. -name "*.cpp")
+      shell: bash
+
     - name: Configure CMake
       run: |
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release  # 可根据需要调整构建类型
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release  
       shell: bash
 
     - name: Build project
       run: |
-        cmake --build ${{github.workspace}}/build --config Release  # 与上面构建类型保持一致
+        cmake --build ${{github.workspace}}/build --config Release  
       shell: bash
 
     - name: Test project (可根据项目实际情况添加测试命令，如果没有测试可省略此步骤)
