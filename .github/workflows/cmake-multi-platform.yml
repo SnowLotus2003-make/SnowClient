@@ -26,10 +26,16 @@ jobs:
           mingw-w64-x86_64-binutils
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-openmp
+    - name: Locate WAVFileReader.cpp
+      shell: bash
+      run: |
+        # 查找 WAVFileReader.cpp 文件的位置并设置为环境变量
+        source_file=$(find. -name "WAVFileReader.cpp" | grep -i "directxtk-src/Audio")
+        echo "SOURCE_FILE=$source_file" >> $GITHUB_ENV
     - name: Resolve function call ambiguity
       shell: cmd
       run: |
-        set source_file=D:\a\SnowClient\SnowClient\build\_deps\directxtk-src\Audio\WAVFileReader.cpp
+        set source_file=%SOURCE_FILE%
         set temp_file=%temp%\WAVFileReader_temp.cpp
         type nul > %temp_file%
         for /f "delims=" %%i in (%source_file%) do (
