@@ -1,46 +1,15 @@
-name: Build Solstice on Windows
+name: Trigger TXT Script on Windows
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:  # 允许手动触发工作流
 
 jobs:
-  build:
-    runs-on: windows-latest
+  trigger_script:
+    runs-on: windows-latest  # 运行环境为最新的 Windows 系统
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4.2.2
+      - name: Checkout Repository  # 检出代码
+        uses: actions/checkout@v4
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Setup CMake
-      uses: jwlawson/actions-setup-cmake@v2.0.2
-      with:
-        cmake-version: 3.28
-
-    - name: Install MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: |
-          mingw-w64-x86_64-binutils
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-openmp
-
-    - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build
-      run: cmake --build build --config Release
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: Solstice Build Artifacts
-        path: |
-          build/*.dll
-          build/*.lib
-          build/*.exe
+      - name: Run TXT Script  # 运行 TXT 脚本
+        run: type your_script.txt  # 将 your_script.txt 替换为实际的 TXT 脚本文件名
