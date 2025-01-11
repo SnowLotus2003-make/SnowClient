@@ -11,16 +11,15 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Checkout code
-      # 使用最新版本的 actions/checkout 动作获取代码
-      uses: actions/checkout@latest
+      uses: actions/checkout@v4.2.2
     - name: Setup MSBuild
-      # 使用最新版本的 microsoft/setup-msbuild 动作设置 MSBuild 环境
-      uses: microsoft/setup-msbuild@latest
+      uses: microsoft/setup-msbuild@v2
     - name: Setup CMake
-      # 使用最新版本的 jwlawson/actions-setup-cmake 动作设置 CMake 环境
-      uses: jwlawson/actions-setup-cmake@latest
+      uses: jwlawson/actions-setup-cmake@v2.0.2
+      with:
+        cmake-version: 3.28
     - name: Install MSYS2
-      uses: msys2/setup-msys2@latest
+      uses: msys2/setup-msys2@v2
       with:
         update: true
         install: |
@@ -32,7 +31,7 @@ jobs:
     - name: Build
       run: cmake --build build --config Release
     - name: Upload DLL
-      uses: actions/upload-artifact@latest
+      uses: actions/upload-artifact@v4
       with:
         name: SnowClient DLL
         path: build/SnowClient.dll
