@@ -31,7 +31,7 @@ jobs:
     - name: Build and Resolve function call ambiguity
       shell: cmd
       run: |
-        cmake --build build --config Release &> build.log
+        cmake --build build --config Release > build.log 2>&1
         set source_file=build\_deps\directxtk-src\Audio\WAVFileReader.cpp
         set temp_file=%temp%\WAVFileReader_temp.cpp
         type nul > %temp_file%
