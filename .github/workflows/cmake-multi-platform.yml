@@ -3,7 +3,7 @@ name: Build and Test Solstice
 on:
   push:
     branches:
-      - main  # 可根据实际情况调整触发分支
+      - main  
   pull_request:
     branches:
       - main
@@ -20,7 +20,10 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         update: true
-        install: pacman -S --noconfirm mingw-w64-x86_64-cmake mingw-w64-x86_64-toolchain mingw-w64-x86_64-binutils make
+      run: |
+        msys2/setup-msys2@v2 -c "pacman --noconfirm -Syu"
+        msys2/setup-msys2@v2 -c "pacman --noconfirm -S mingw-w64-x86_64-cmake mingw-w64-x86_64-toolchain mingw-w64-x86_64-binutils make"
+      shell: bash
 
     - name: Configure CMake
       run: |
