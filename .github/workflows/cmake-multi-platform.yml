@@ -29,20 +29,23 @@ jobs:
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release
     - name: Build and Resolve function call ambiguity
-      shell: cmd
+      shell: powershell
       run: |
+        # 构建项目
         cmake --build build --config Release > build.log 2>&1
-        set source_file=build\_deps\directxtk-src\Audio\WAVFileReader.cpp
-        set temp_file=%temp%\WAVFileReader_temp.cpp
-        type nul > %temp_file%
-        for /f "delims=" %%i in (%source_file%) do (
-          set line=%%i
-          setlocal enabledelayedexpansion
-          set new_line=!line:safe_handle(=DirectX::safe_handle(!
-          echo.!new_line!>> %temp_file%
-          endlocal
-        )
-        move /y %temp_file% %source_file%
+        # 代码替换逻辑
+        $source_file = "build_deps/directxtk-src/Audio/WAVFileReader.cpp"
+        $temp_file = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "WAVFileReader_temp.cpp")
+        Set-Content -Path $temp_file -Value ""
+        Get-Content -Path $source_file | ForEach-Object {
+          $line = $_
+          $new_line = $line -replace "safe_handle\(", "DirectX::safe_handle("
+          Add-Content -Path $temp_file -Value $new_line
+        }
+        if (Test-Path $source_file) {
+          Remove-Item $source_file -Force
+        }
+        Move-Item -Path $temp_file -Destination $source_file -Force
     - name: Check DLL Existence
       shell: powershell
       run: |
@@ -50,12 +53,15 @@ jobs:
           Write-Host "SnowClient.dll not found in the build directory. Build may have failed."
           exit 1
         }
+    - name: Set Version
+      run: |
+        echo "VERSION=v1.0.0" > $GITHUB_ENV
     - name: Create Release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v1.0.0  # 可根据实际情况修改版本号
+        tag_name: ${{ env.VERSION }}
         release_name: SnowClient DLL Release
         draft: false
         prerelease: false
