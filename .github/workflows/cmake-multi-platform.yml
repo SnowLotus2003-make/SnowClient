@@ -1,55 +1,45 @@
-name: Build SnowClient DLL
+name: Solstice Build and Test Workflow
+
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]  
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-latest  
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
-    - name: Setup CMake
-      uses: jwlawson/actions-setup-cmake@v2.0.2
-      with:
-        cmake-version: 3.28
-    - name: Install MSYS2
+
+    - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
       with:
         update: true
         install: |
-          mingw-w64-x86_64-binutils
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-openmp
-    - name: List directory structure
-      run: Get-ChildItem -Path. -Recurse
-    - name: Print environment variables
+          pacman -S --noconfirm pacman
+          pacman -S --noconfirm mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils
+
+    - name: Patch source code to resolve function call ambiguity
       run: |
-        Write-Host "Current working directory: $PWD"
-        Get-ChildItem Env:
-    - name: Resolve safe_handle ambiguity
-      run: |
-        $searchPattern = "safe_handle\((.*?)\)"
-        $replacement = "DirectX::safe_handle($1)"
-        $files = Get-ChildItem -Path. -Recurse -Include *.cpp, *.cxx
-        foreach ($file in $files) {
-            $content = Get-Content -Path $file.FullName
-            $newContent = $content -replace $searchPattern, $replacement
-            Set-Content -Path $file.FullName -Value $newContent
-        }
+        # 假设需要在源文件中明确指定调用 DirectX::safe_handle
+        sed -i 's/safe_handle(/DirectX::safe_handle(/g' $(find. -name "*.cpp")
+      shell: bash
+
     - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-    - name: Build
-      run: cmake --build build --config Release
-    - name: Upload DLL
-      uses: actions/upload-artifact@v3
-      with:
-        name: SnowClient DLL
-        path: build/SnowClient.dll
+      run: |
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release  
+      shell: bash
 
+    - name: Build project
+      run: |
+        cmake --build ${{github.workspace}}/build --config Release  
+      shell: bash
 
+    - name: Test project (可根据项目实际情况添加测试命令，如果没有测试可省略此步骤)
+      run: |
+        # 假设项目有测试可执行文件，这里使用 ctest 作为示例，需根据实际情况修改
+        ctest --test-dir ${{github.workspace}}/build
+      shell: bash
