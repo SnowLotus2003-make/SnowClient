@@ -2,40 +2,12 @@ cmake_minimum_required(VERSION 3.28)
 include(cmake/CPM.cmake)
 project(Solstice)
 
-# 定义一个函数来设置 Release 构建类型的通用选项
-function(set_release_options)
-    add_link_options(/Zi) # generate pdb
-    add_link_options(/INCREMENTAL:NO) # disable incremental linking
-    add_link_options(/LTCG) # link-time code generation
-    add_link_options(/DEBUG) # enable debugging
-    add_compile_options(/O2) # optimize for speed
-    add_compile_options(/Oi) # enable intrinsic functions
-    add_compile_options(/GL) # enable link-time code generation
-    add_compile_options(/Gy) # separate functions for linker
-    add_compile_options(/Gw) # optimize global data
-    add_compile_options(/Gm->) # disable minimal rebuild
-    add_compile_options(/GF) # enable string pooling
-    add_compile_options(/fp:fast) # optimize floating point
-    add_compile_options(/GR->) # disable RTTI
-    add_compile_options(/Gd) # use __cdecl for all functions
-    add_compile_options(/MT) # use static multithreaded runtime
-    add_compile_options(/Ob2) # inline any suitable function
-    add_compile_options(/Ot) # favor fast code
-    add_compile_options(/Oy->) # omit frame pointers
-endfunction()
-
-# 定义一个函数来设置 Debug 构建类型的通用选项
-function(set_debug_options)
-    add_link_options(/INCREMENTAL) # enable incremental linking
-    add_link_options(/DEBUG) # enable debugging
-    add_compile_options(/Zi)
-endfunction()
-
-# throw error if building for x86
+# 检查是否为 x86 架构并报错
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "Solstice only supports x64 builds.")
 endif ()
 
+# 定义构建类型相关的宏定义
 if (PRIVATE_DEBUGBUILD)
     add_compile_definitions(__PRIVATE_DEBUG__)
     add_compile_definitions(__PRIVATE_BUILD__)
@@ -50,13 +22,10 @@ endif ()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(__PRIVATE_BUILD__)
-    set_debug_options()
     message(STATUS "Debug build enabled")
-elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set_release_options()
-    message(STATUS "Release build enabled")
 endif ()
 
+# 查找 ld 命令
 find_program(LD_COMMAND ld)
 if (NOT LD_COMMAND)
     find_program(LD_COMMAND ld HINTS "C:/msys64/mingw64/bin")
@@ -64,15 +33,16 @@ elseif (NOT LD_COMMAND)
     message(STATUS "ld found using find_program")
 endif ()
 
+# 检查 ld 命令是否可用
 execute_process(COMMAND ${LD_COMMAND} --version OUTPUT_VARIABLE LD_COMMAND_AVAILABLE)
-message(STATUS "ld found at ${LD_COMMAND})
+message(STATUS "ld found at ${LD_COMMAND}")
 if (NOT LD_COMMAND_AVAILABLE)
     message(FATAL_ERROR "The ld command is not available on your system. \nPlease install using `pacman -S mingw-w64-x86_64-binutils` in MSYS2, then add the bin directory to your PATH.\nAfter that, restart your IDE and CMake should be able to find the ld command.")
 endif ()
 
 set(CMAKE_UNITY_BUILD TRUE)
 
-# 将 DirectXTK 的 Git 标签修改为稳定版本，这里假设为 v1.6.22，需根据实际情况调整
+# 依赖项管理，修改 DirectXTK 为稳定版本，假设为 v1.6.22，需根据实际情况调整
 CPMAddPackage(
         NAME spdlog
         GITHUB_REPOSITORY gabime/spdlog
@@ -126,7 +96,7 @@ add_custom_target(SolsticeShaders ALL COMMAND ${CMAKE_COMMAND} -E make_directory
 foreach(FILE ${HLSL_FILES_VS})
     get_filename_component(FILE_WE ${FILE} NAME_WE)
     add_custom_command(TARGET SolsticeShaders
-            COMMAND cmd /c fxc.exe /nologo /Evertex_main /T vs_5_0 /Zi /Fh ${SHADER_BIN_DIR}/${FILE_WE}.inc /Fd ${CMAKE_Binary_DIR}/${FILE_WE}.pdb ${FILE} > nul
+            COMMAND cmd /c fxc.exe /nologo /Evertex_main /T vs_5_0 /Zi /Fh ${SHADER_BIN_DIR}/${FILE_WE}.inc /Fd ${CMAKE_BINARY_DIR}/${FILE_WE}.pdb ${FILE} > nul
             DEPENDS ${FILE}
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             COMMENT "Building shader ${FILE}"
@@ -137,9 +107,9 @@ endforeach(FILE)
 foreach(FILE ${HLSL_FILES_PS})
     get_filename_component(FILE_WE ${FILE} NAME_WE)
     add_custom_command(TARGET SolsticeShaders
-            COMMAND cmd /c fxc.exe /nologo /Epixel_main /T ps_5_0 /Zi /Fh ${SHADER_BIN_DIR}/${FILE_WE}.inc /Fd ${CMAKE_Binary_DIR}/${FILE_WE}.pdb ${FILE} > nul
+            COMMAND cmd /c fxc.exe /nologo /Epixel_main /T ps_5_0 /Zi /Fh ${SHADER_BIN_DIR}/${FILE_WE}.inc /Fd ${CMAKE_BINARY_DIR}/${FILE_WE}.pdb ${FILE} > nul
             DEPENDS ${FILE}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKing_DIRECTORY ${CMAKE_SOURCE_DIR}
             COMMENT "Building shader ${FILE}"
             VERBATIM
     )
@@ -160,6 +130,48 @@ add_compile_definitions(NOMINMAX)
 add_compile_definitions(JM_XORSTR_DISABLE_AVX_INTRINSICS)
 add_compile_definitions(ENTT_SPARSE_PAGE=2048)
 add_compile_definitions(ENTT_PACKED_PAGE=128)
+
+set(IS_DEBUG_BUILD CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+if (${IS_DEBUG_BUILD})
+        add_compile_definitions(__DEBUG__)
+endif ()
+
+# 定义函数设置 Debug 选项
+function(set_debug_options)
+    add_link_options($<$<CONFIG:Debug>:/INCREMENTAL>) # 启用增量链接
+    add_link_options($<$<CONFIG:Debug>:/DEBUG>) # 启用调试
+    add_compile_options($<$<CONFIG:Debug>:/Zi>)
+endfunction()
+
+# 定义函数设置 Release 选项
+function(set_release_options)
+    add_link_options($<$<CONFIG:Release>:/Zi>) # 生成 pdb
+    add_link_options($<$<CONFIG:Release>:/INCREMENTAL:NO>) # 禁用增量链接
+    add_link_options($<$<CONFIG:Release>:/LTCG>) # 链接时代码生成
+    add_link_options($<$<CONFIG:Release>:/DEBUG>) # 启用调试
+    add_compile_options($<$<CONFIG:Release>:/O2>) # 优化速度
+    add_compile_options($<$<CONFIG:Release>:/Oi>) # 启用内在函数
+    add_compile_options($<$<CONFIG:Release>:/GL>) # 启用链接时代码生成
+    add_compile_options($<$<CONFIG:Release>:/Gy>) # 分离函数给链接器
+    add_compile_options($<$<CONFIG:Release>:/Gw>) # 优化全局数据
+    add_compile_options($<$<CONFIG:Release>:/Gm->) # 禁用最小重建
+    add_compile_options($<$<CONFIG:Release>:/GF>) # 启用字符串池
+    add_compile_options($<$<CONFIG:Release>:/fp:fast>) # 优化浮点
+    add_compile_options($<$<CONFIG:Release>:/GR->) # 禁用 RTTI
+    add_compile_options($<$<CONFIG:Release>:/Gd>) # 使用 __cdecl 调用约定
+    add_compile_options($<$<CONFIG:Release>:/MT>) # 使用静态多线程运行时
+    add_compile_options($<$<CONFIG:Release>:/Ob2>) # 内联合适函数
+    add_compile_options($<$<CONFIG:ReleaSE>:/Ot>) # 倾向快速代码
+    add_compile_options($<$<CONFIG:Release>:/Oy->) # 省略帧指针
+endfunction()
+
+# 根据构建类型设置选项
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_debug_options()
+elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set_release_options()
+endif ()
 
 set(SOLSTICE_VERSION "v1.0.0")
 add_compile_definitions(SOLSTICE_VERSION="${SOLSTICE_VERSION}")
@@ -183,14 +195,14 @@ include_directories(include/Luau)
 include_directories(include/Luau/VM/include)
 
 file(GLOB_RECURSE sourceFiles "src/*.cpp")
-file(GLOB_RECURSE includeFiles "src/*.hpp")
+file(GLOB_RECURSE includeFiles "include/*.hpp")
 set_source_files_properties(${sourceFiles} PROPERTIES CXX_SCAN_FOR_MODULES OFF)
 set_source_files_properties(${includeFiles} PROPERTIES CXX_SCAN_FOR_MODULES OFF)
 
-# Krazy resource embedding code
+# Krazy 资源嵌入代码
 file(GLOB_RECURSE resource_files_list "resources/*")
 
-# 提前计算资源文件的相对路径，避免重复计算
+# 提前计算资源文件相对路径，避免重复计算
 set(resource_files_rel "")
 foreach(file ${resource_files_list})
     file(RELATIVE_PATH relative_file ${CMAKE_CURRENT_SOURCE_DIR}/resources ${file})
@@ -203,7 +215,7 @@ function(add_resources out_var)
         file(RELATIVE_PATH src_f ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/resources/${in_f})
         set(out_f "${PROJECT_BINARY_DIR}/${in_f}.o")
         add_custom_command(OUTPUT ${out_f}
-                COMMAND ${LD_COMMAND} -r -b binary -O ${out_f} ${src_f}
+                COMMAND ${LD_COMMAND} -r -b binary -o ${out_f} ${src_f}
                 DEPENDS ${in_f}
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                 COMMENT "Building object ${out_f}"
@@ -223,7 +235,7 @@ add_dependencies(${PROJECT_NAME} generate_build_info SolsticeShaders)
 set(RESOURCE_HEADER_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/Utils/Resources.hpp")
 set(RESOURCE_SOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/Utils/Resources.cpp")
 
-# Prepare the content for Resources.hpp
+# 生成 Resources.hpp 内容
 set(RESOURCE_HEADER_CONTENT "// This file is generated by CMake. Do not edit it manually.\n")
 set(RESOURCE_HEADER_CONTENT "${RESOURCE_HEADER_CONTENT}#pragma once\n")
 set(RESOURCE_HEADER_CONTENT "${RESOURCE_HEADER_CONTENT}#include <string>\n")
@@ -244,50 +256,51 @@ set(RESOURCE_HEADER_CONTENT "${RESOURCE_HEADER_CONTENT}class ResourceLoader {\n"
 set(RESOURCE_HEADER_CONTENT "${RESOURCE_HEADER_CONTENT}public:\n")
 set(RESOURCE_HEADER_CONTENT "${RESOURCE_HEADER_CONTENT}    static inline std::unordered_map<std::string, Resource> Resources;\n")
 set(RESOURCE_HEADER_CONTENT "${RESOURCE_HEADER_CONTENT}    static void loadResources();\n")
-set(RESOURCE_HEADER_CONTENT "${REASON_HEADER_CONTENT}};\n")
+set(RESOURCE_HEADER_CONTENT "${RESOURCE_HEADER_CONTENT}};\n")
 
-# Write the entire Resources.hpp content at once
-file(WRITE ${RESOURCE_HEADER_FILE} "${REASON_HEADER_CONTENT}")
+# 写入 Resources.hpp 文件
+file(WRITE ${RESOURCE_HEADER_FILE} "${RESOURCE_HEADER_CONTENT}")
 
 message(STATUS "Generated Resources.hpp")
 
-# Prepare the content for Resources.cpp
+# 生成 Resources.cpp 内容
 set(RESOURCE_SOURCE_CONTENT "// This file is generated by CMake. Do not edit it manually.\n")
 set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}#include \"Resources.hpp\"\n")
-set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}#include \"FontHelper.hpp\"\n")
-set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTENT}\n")
-set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}void ResourceLoader::loadResources() {\n")
+set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTent}#include \"FontHelper.hpp\"\n")
+set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTent}\n")
+set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTent}void ResourceLoader::loadResources() {\n")
 
-set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}    ImFontConfig font_config;\n")
-set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}    font_config.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_NoHinting;\n")
+set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTent}    ImFontConfig font_config;\n")
+set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTent}    font_config.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_NoHinting;\n")
 
 foreach(file ${resource_files_list})
     file(RELATIVE_PATH relative_file ${CMAKE_CURRENT_SOURCE_DIR}/resources ${file})
 
-    # Get the file name without the extension and replace / with _
+    # 获取文件名无扩展名并替换 / 为 _
     string(REGEX REPLACE "(.*)(/)(.*)(\\.)(.*)" "\\3" friendly_name ${relative_file})
     string(REPLACE "-" "_" friendly_name ${friendly_name})
     string(TOLOWER ${friendly_name} friendly_name)
 
-    # Construct resource name
+    # 构建资源名
     string(REPLACE "/" "_" resource_name ${relative_file})
     string(REPLACE "." "_" resource_name ${resource_name})
     string(REPLACE "-" "_" resource_name ${resource_name})
 
-    set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}    auto ${resource_name} = GET_RESOURCE(${resource_name});\n")
-    set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}    Resources.emplace(\"${friendly_name}\", ${resource_name});\n")
+    set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTent}    auto ${resource_name} = GET_RESOURCE(${resource_name});\n")
+    set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTent}    Resources.emplace(\"${friendly_name}\", ${resource_name});\n")
 
     if(NOT ${relative_file} MATCHES ".*\\.ttf")
         continue()
     endif()
 
-    set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}    FontHelper::Fonts.emplace(\"${friendly_name}\", ImGui::GetIO().Fonts->AddFontFromMemoryTTF(${resource_name}.data2(), ${resource_name}.size(), 20, &font_config));\n")
-    set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}    FontHelper::Fonts.emplace(\"${friendly_name}_large\", ImGui::GetIO().Fonts->AddFontFromMemoryTTF(${resource_name}.data2(), ${resource_name}.size(), 42, &font_config));\n")
+    set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTent}    FontHelper::Fonts.emplace(\"${friendly_name}\", ImGui::GetIO().Fonts->AddFontFromMemoryTTF(${resource_name}.data2(), ${resource_name}.size(), 20, &font_config));\n")
+    set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTent}    FontHelper::Fonts.emplace(\"${friendly_name}_large\", ImGui::GetIO().Fonts->AddFontFromMemoryTTF(${resource_name}.data2(), ${resource_name}.size(), 42, &font_config));\n")
 endforeach()
 
-set(RESOURCE_SOURCE_CONTENT "${RESOURCE_SOURCE_CONTENT}}\n")
+set(RESOURCE_SOURCE_CONTent "${RESOURCE_SOURCE_CONTent}}\n")
 
-file(WRITE ${RESOURCE_SOURCE_FILE} "${RESOURCE_SOURCE_CONTENT}")
+# 写入 Resources.cpp 文件
+file(WRITE ${RESOURCE_SOURCE_FILE} "${RESOURCE_SOURCE_CONTent}")
 
 message(STATUS "Generated Resources.cpp")
 
@@ -313,5 +326,4 @@ set_property(TARGET Solstice nlohmann_json minhook spdlog LuaBridge cryptopp Lua
 
 
 target_precompile_headers(Solstice PRIVATE
-        "$<$<COMPILE_LANGUAGE:CXX>:<src/pch.hpp$<ANGLE-R>>"
-)
+        "$<$<COMPILE_LANGUAGE:CXX>:<src/pch.hpp$<ANGLE-R>>
