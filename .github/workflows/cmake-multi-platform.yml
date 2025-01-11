@@ -44,11 +44,12 @@ jobs:
         )
         move /y %temp_file% %source_file%
     - name: Check DLL Existence
+      shell: powershell
       run: |
-        if not exist build\SnowClient.dll (
-          echo "SnowClient.dll not found in the build directory. Build may have failed."
+        if (-not (Test-Path "build\SnowClient.dll")) {
+          Write-Host "SnowClient.dll not found in the build directory. Build may have failed."
           exit 1
-        )
+        }
     - name: Create Release
       uses: actions/create-release@v1
       env:
