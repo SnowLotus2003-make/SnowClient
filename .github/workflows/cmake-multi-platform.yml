@@ -1,0 +1,46 @@
+name: Build Solstice on Windows
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4.2.2
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.13
+
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v2.0.2
+      with:
+        cmake-version: 3.28
+
+    - name: Install MSYS2
+      uses: msys2/setup-msys2@v2.25.0
+      with:
+        update: true
+        install: |
+          mingw-w64-x86_64-binutils
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-openmp
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Solstice Build Artifacts
+        path: |
+          build/*.dll
+          build/*.lib
+          build/*.exe
