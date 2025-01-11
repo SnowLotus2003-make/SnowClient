@@ -1,23 +1,43 @@
-name: Trigger TXT Script on Windows and Upload DLL
+name: Build with CMakeLists.txt
 
 on:
-  workflow_dispatch:  # 允许手动触发工作流
+  push:
+    branches:
+      - main
 
 jobs:
-  trigger_script:
-    runs-on: windows-latest  # 运行环境为最新的 Windows 系统
+  build_job:
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout Repository  # 检出代码
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Run TXT Script  # 运行 TXT 脚本
-        run: type CMakeLists.txt  # 将 your_script.txt 替换为实际的 TXT 脚本文件名
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
 
-      - name: Build and Upload DLL
-        run: |
-          # 假设构建命令为 cmake --build build --config Release，根据实际情况修改
-          cmake --build build --config Release
-          cd build
-          # 将 SnowClient.dll 替换为实际的构建输出 dll 文件名
-          gh release create --generate-notes --title "New Release" --draft --prerelease --files SnowClient.dll
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v2.0.2
+      with:
+        cmake-version: 3.28
+
+    - name: Install MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: |
+          mingw-w64-x86_64-binutils
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-openmp
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Check for build success
+      run: |
+        if (!(Test-Path build/*.dll -or Test-Path build/*.lib -or Test-Path build/*.exe)) {
+          Write-Error "Build failed to produce expected output files."
+        }
