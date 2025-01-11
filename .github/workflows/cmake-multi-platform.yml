@@ -26,22 +26,13 @@ jobs:
           mingw-w64-x86_64-binutils
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-openmp
-    - name: Check find command availability
-      shell: bash
-      run: |
-        if! command -v find &>/dev/null; then
-          echo "find command not found. Please check the environment."
-          exit 1
-        fi
-    - name: Locate WAVFileReader.cpp
-      shell: bash
-      run: |
-        source_file=$(find. -name "WAVFileReader.cpp" | grep -i "directxtk-src/Audio")
-        echo "SOURCE_FILE=$source_file" >> $GITHUB_ENV
-    - name: Resolve function call ambiguity
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+    - name: Build and Resolve function call ambiguity
       shell: cmd
       run: |
-        set source_file=%SOURCE_FILE%
+        cmake --build build --config Release
+        set source_file=build\_deps\directxtk-src\Audio\WAVFileReader.cpp
         set temp_file=%temp%\WAVFileReader_temp.cpp
         type nul > %temp_file%
         for /f "delims=" %%i in (%source_file%) do (
@@ -52,10 +43,6 @@ jobs:
           endlocal
         )
         move /y %temp_file% %source_file%
-    - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-    - name: Build
-      run: cmake --build build --config Release
     - name: Upload DLL
       uses: actions/upload-artifact@v3
       with:
