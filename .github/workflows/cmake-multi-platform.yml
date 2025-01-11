@@ -11,13 +11,14 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      # 使用最新版本的 actions/checkout 动作获取代码
+      uses: actions/checkout@latest
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
+      # 使用最新版本的 microsoft/setup-msbuild 动作设置 MSBuild 环境
+      uses: microsoft/setup-msbuild
     - name: Setup CMake
-      uses: jwlawson/actions-setup-cmake@v2.0.2
-      with:
-        cmake-version: 3.28
+      # 使用最新版本的 jwlawson/actions-setup-cmake 动作设置 CMake 环境
+      uses: jwlawson/actions-setup-cmake
     - name: Install MSYS2
       uses: msys2/setup-msys2@v2
       with:
