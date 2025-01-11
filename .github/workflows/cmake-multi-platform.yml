@@ -31,7 +31,7 @@ jobs:
     - name: Build and Resolve function call ambiguity
       shell: cmd
       run: |
-        cmake --build build --config Release
+        cmake --build build --config Release &> build.log
         set source_file=build\_deps\directxtk-src\Audio\WAVFileReader.cpp
         set temp_file=%temp%\WAVFileReader_temp.cpp
         type nul > %temp_file%
@@ -46,7 +46,7 @@ jobs:
     - name: Check DLL Existence
       shell: powershell
       run: |
-        if (-not (Test-Path "build\Solstice.dll")) {
+        if (-not (Test-Path "build\SnowClient.dll")) {
           Write-Host "SnowClient.dll not found in the build directory. Build may have failed."
           exit 1
         }
@@ -65,6 +65,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/Solstice.dll
-        asset_name: Solstice.dll
+        asset_path: build/SnowClient.dll
+        asset_name: SnowClient.dll
         asset_content_type: application/octet-stream
