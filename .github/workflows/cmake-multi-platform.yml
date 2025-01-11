@@ -1,4 +1,4 @@
-name: Trigger TXT Script on Windows
+name: Trigger TXT Script on Windows and Upload DLL
 
 on:
   workflow_dispatch:  # 允许手动触发工作流
@@ -13,3 +13,11 @@ jobs:
 
       - name: Run TXT Script  # 运行 TXT 脚本
         run: type CMakeLists.txt  # 将 your_script.txt 替换为实际的 TXT 脚本文件名
+
+      - name: Build and Upload DLL
+        run: |
+          # 假设构建命令为 cmake --build build --config Release，根据实际情况修改
+          cmake --build build --config Release
+          cd build
+          # 将 SnowClient.dll 替换为实际的构建输出 dll 文件名
+          gh release create --generate-notes --title "New Release" --draft --prerelease --files SnowClient.dll
