@@ -18,7 +18,9 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         update: true
-        install: pacman -S --noconfirm mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils
+        install: |
+          pacman -S --noconfirm pacman
+          pacman -S --noconfirm mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils
 
     - name: Patch source code to resolve function call ambiguity
       run: |
