@@ -14,7 +14,6 @@ jobs:
       shell: powershell
     - name: Create build folder
       run: |
-        mkdir build
         Set-Location build
       shell: powershell
     - name: Setup MSYS2
@@ -27,7 +26,7 @@ jobs:
       with:
         cmake-version: 3.28
     - name: Configure CMake
-      run: cmake .. -G "Visual Studio 17 2022"
+      run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
     - name: Build DLL
       run: msbuild Solstice.sln /p:Configuration=Release
