@@ -1,32 +1,40 @@
-name: Windows Build
+name: Windows 构建
 on:
   workflow_dispatch:
 jobs:
   build:
     runs-on: windows-latest
     steps:
-    - name: Checkout code
+    - name: 检出代码
       uses: actions/checkout@v3
-    - name: Setup dotnet
+    - name: 安装 dotnet
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
-    - name: Install Visual Studio Build Tools
+    - name: 查找 msbuild.exe 路径
+      run: |
+        # 通过 dotnet --info 命令获取 dotnet 安装路径信息
+        $dotnetPath = & dotnet --info | Select-String -Pattern 'Installation Path:' | ForEach-Object { $_.ToString().Split(': ')[1].Trim() }
+        # 拼接出 msbuild.exe 的完整路径
+        $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
+        # 将路径存储为名为 MSBUILD_PATH 的变量
+        Write-Host "##vso[task.setvariable variable=MSBUILD_PATH]$msbuildPath"
+      shell: powershell
+    - name: 安装 Visual Studio 构建工具
       run: |
         choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive" -y
       shell: powershell
-  
-    - name: Create build folder
+    - name: 创建构建文件夹
       run: |
         cd build
       shell: powershell
-    - name: Setup CMake
+    - name: 安装 CMake
       uses: jwlawson/actions-setup-cmake@v2.0.2
       with:
         cmake-version: 3.28
-    - name: Configure CMake
+    - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
-    - name: Build DLL with dotnet build
+    - name: 使用 dotnet build 构建 DLL
       run: dotnet build "D:\a\SnowClient\SnowClient\Solstice.sln" -c Release
       working-directory: build
