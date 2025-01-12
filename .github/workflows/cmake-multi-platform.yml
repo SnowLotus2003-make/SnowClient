@@ -11,9 +11,13 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
-    - name: 安装 Visual Studio 构建工具
+    - name: 添加.NET SDK 到环境变量
       run: |
-        choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive" -y
+        $dotnetPath = & "${{ env.HOME }}/.dotnet/tools"
+        if (-not (Test-Path $dotnetPath)) {
+            New-Item -ItemType Directory -Force -Path $dotnetPath
+        }
+        [Environment]::SetEnvironmentVariable("PATH", "${{ env.HOME }}/.dotnet/tools;${{ env.PATH }}", [EnvironmentVariableTarget]::Process)
       shell: powershell
     - name: 进入文件夹
       run: |
