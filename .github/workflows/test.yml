@@ -31,7 +31,12 @@ jobs:
     - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
+    - name: 复制 msbuild.exe
+      run: |
+        $sourcePath = "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\msbuild.exe"
+        $destinationPath = "D:\a\SnowClient\SnowClient\msbuild.exe"
+        Copy-Item -Path $sourcePath -Destination $destinationPath -Force
+      shell: powershell
     - name: build
-      run: &"C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\msbuild.exe" `
-        "D:\a\SnowClient\SnowClient\Solstice.sln" `/p:Configuration=Release`
+      run: &"D:\a\SnowClient\SnowClient\msbuild.exe"&"D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release`
       shell: powershell
