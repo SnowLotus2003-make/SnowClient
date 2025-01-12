@@ -21,7 +21,11 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'  
+        dotnet-version: '7.0.x'
+    - name: Install dotnet Tools
+      run: |
+        dotnet tool install -g dotnet - msbuild
+      shell: powershell  
     - name: Build DLL
       run: msbuild Solstice.sln /p:Configuration=Release
       working-directory: build
