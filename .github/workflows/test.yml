@@ -13,8 +13,16 @@ jobs:
         dotnet-version: '7.0.x'
     - name: Setup Mono
       run: |
-        # 通过 Chocolatey 安装 Mono
         choco install mono -y
+        # 查找msbuild.exe的路径
+        $msbuildExe = Get-Command msbuild -ErrorAction SilentlyContinue -CommandType Application | Where-Object { $_.Source -like "*mono*" }
+        if ($msbuildExe) {
+            $msbuildPath = $msbuildExe.Source
+            Write-Host "找到msbuild.exe路径: $msbuildPath"
+        } else {
+            Write-Error "未找到Mono中的msbuild.exe"
+            exit 1
+        }
       shell: powershell
     - name: Create build folder
       run: |
@@ -29,7 +37,6 @@ jobs:
       shell: powershell
     - name: Build DLL with Mono msbuild
       run: |
-        $msbuildPath = "C:\Program Files\Mono\bin\msbuild.exe"
         & $msbuildPath "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
       shell: powershell
       working-directory: build
