@@ -26,6 +26,13 @@ jobs:
         vcpkg install spdlog:x64-windows magic_enum:x64-windows glm:x64-windows nlohmann_json:x64-windows DirectXTK:x64-windows cryptopp-cmake:x64-windows LuaBridge3:x64-windows
         set "PATH=%PATH%;C:\Program Files\CMake\bin"
 
+    - name: Modify CMakeLists.txt for warning handling
+      shell: cmd
+      run: |
+        echo "if(MSVC)" >> ${{github.workspace}}\CMakeLists.txt
+        echo "  add_compile_options(/W4 /WX)" >> ${{github.workspace}}\CMakeLists.txt
+        echo "endif()" >> ${{github.workspace}}\CMakeLists.txt
+
     - name: Configure CMake
       shell: cmd
       run: |
