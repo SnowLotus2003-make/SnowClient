@@ -1,4 +1,4 @@
-name: Windows Build
+name: Windows Build2
 on:
   workflow_dispatch:
 jobs:
@@ -15,14 +15,6 @@ jobs:
       run: |
         # 通过 Chocolatey 安装 Mono
         choco install mono -y
-      shell: powershell
-    - name: Check Solution File Existence
-      run: |
-        $solutionFile = "D:\a\SnowClient\SnowClient\Solstice.sln"
-        if (-not (Test-Path -Path $solutionFile)) {
-            Write-Error "解决方案文件 $solutionFile 未找到"
-            exit 1
-        }
       shell: powershell
     - name: Create build folder
       run: |
