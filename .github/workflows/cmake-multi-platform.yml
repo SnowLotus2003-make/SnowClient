@@ -17,13 +17,17 @@ jobs:
         $sdkInfo = & dotnet --list-sdks
         if ($sdkInfo) {
             # 提取第一个 SDK 的安装路径
-            $dotnetPath = $sdkInfo.Split("`n")[0].Trim().Split(' ')[0].Trim()
-            $lastIndex = $dotnetPath.LastIndexOf('\\')
-            if ($lastIndex -gt -1) {
-                $dotnetPath = $dotnetPath.Substring(0, $lastIndex)
+            $firstSdkLine = $sdkInfo.Split("`n")[0].Trim()
+            if ($firstSdkLine) {
+                $dotnetPath = $firstSdkLine.Split(' ')[0].Trim()
+                # 检查路径是否包含 \ 字符
+                if ($dotnetPath.Contains('\\')) {
+                    $lastIndex = $dotnetPath.LastIndexOf('\\')
+                    $dotnetPath = $dotnetPath.Substring(0, $lastIndex)
+                }
+                $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
+                Write-Host "##vso[task.setvariable variable=MSBUILD_PATH]$msbuildPath"
             }
-            $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
-            Write-Host "##vso[task.setvariable variable=MSBUILD_PATH]$msbuildPath"
         }
       shell: powershell
     - name: 安装 Visual Studio 构建工具
