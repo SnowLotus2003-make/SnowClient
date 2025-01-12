@@ -21,7 +21,7 @@ jobs:
         install: mingw-w64-x86_64-binutils
 
     - name: Install CMake
-      uses: lukka/setup-cmake@v4
+      uses: actions/setup-cmake@v4
 
     - name: Configure CMake
       run: cmake.. -G "Visual Studio 17 2022"..
