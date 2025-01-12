@@ -15,12 +15,16 @@ jobs:
       run: |
         # 获取所有已安装的 SDK 信息
         $sdkInfo = & dotnet --list-sdks
-        # 提取第一个 SDK 的安装路径
-        $dotnetPath = $sdkInfo.Split("`n")[0].Trim().Split(' ')[0].Trim()
-        # 去掉版本号部分，得到基础安装路径
-        $dotnetPath = $dotnetPath.Substring(0, $dotnetPath.LastIndexOf('\\'))
-        $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
-        Write-Host "##vso[task.setvariable variable=MSBUILD_PATH]$msbuildPath"
+        if ($sdkInfo) {
+            # 提取第一个 SDK 的安装路径
+            $dotnetPath = $sdkInfo.Split("`n")[0].Trim().Split(' ')[0].Trim()
+            $lastIndex = $dotnetPath.LastIndexOf('\\')
+            if ($lastIndex -gt -1) {
+                $dotnetPath = $dotnetPath.Substring(0, $lastIndex)
+            }
+            $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
+            Write-Host "##vso[task.setvariable variable=MSBUILD_PATH]$msbuildPath"
+        }
       shell: powershell
     - name: 安装 Visual Studio 构建工具
       run: |
