@@ -18,7 +18,6 @@ jobs:
   
     - name: Create build folder
       run: |
-        mkdir -p build
         cd build
       shell: powershell
     - name: Setup CMake
