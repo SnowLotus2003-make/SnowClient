@@ -22,10 +22,11 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
-    - name: Install dotnet Tools
-      run: |
-        dotnet tool install -g dotnet - msbuild
-      shell: powershell  
+    
     - name: Build DLL
-      run: msbuild Solstice.sln /p:Configuration=Release
+      run: |
+        $sdkPath = &dotnet --list-sdks | Select-String -Pattern "7.0" | ForEach-Object { $_.ToString().Split(' ')[0] }
+        $msbuildPath = Join-Path -Path (Split-Path -Path $sdkPath -Parent) -ChildPath "MSBuild\Current\Bin\msbuild.exe"
+        & $msbuildPath Solstice.sln /p:Configuration=Release
+      shell: powershell
       working-directory: build
