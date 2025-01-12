@@ -1,0 +1,43 @@
+name: Windows Build
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+    - name: Setup Mono
+      run: |
+        # 通过 Chocolatey 安装 Mono
+        choco install mono -y
+      shell: powershell
+    - name: Check Solution File Existence
+      run: |
+        $solutionFile = "D:\a\SnowClient\SnowClient\Solstice.sln"
+        if (-not (Test-Path -Path $solutionFile)) {
+            Write-Error "解决方案文件 $solutionFile 未找到"
+            exit 1
+        }
+      shell: powershell
+    - name: Create build folder
+      run: |
+        cd build
+      shell: powershell
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v2.0.2
+      with:
+        cmake-version: 3.28
+    - name: Configure CMake
+      run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
+      shell: powershell
+    - name: Build DLL with Mono msbuild
+      run: |
+        $msbuildPath = "C:\Program Files\Mono\bin\msbuild.exe"
+        & $msbuildPath "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
+      shell: powershell
+      working-directory: build
