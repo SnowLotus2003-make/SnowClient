@@ -11,27 +11,6 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
-    - name: Check.NET Version and SDKs
-      run: |
-        dotnet --version
-        dotnet --list-sdks
-      shell: powershell
-    - name: Check MSBuild in Path
-      run: |
-        $found = $false
-        $pathParts = $env:Path.Split(';')
-        foreach ($pathPart in $pathParts) {
-            $msbuildPath = Join-Path -Path $pathPart -ChildPath "msbuild.exe"
-            if (Test-Path -Path $msbuildPath) {
-                $found = $true
-                break
-            }
-        }
-        if (-not $found) {
-            Write-Error "msbuild.exe 未在 Path 环境变量中找到"
-            exit 1
-        }
-      shell: powershell
     - name: Create build folder
       run: |
         cd build
@@ -43,14 +22,6 @@ jobs:
     - name: Configure CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
-    - name: Build DLL
-      run: |
-        $sdkPath = &dotnet --list-sdks | Select-String -Pattern "7.0" | ForEach-Object { $_.ToString().Split(' ')[0] }
-        if (!$sdkPath) {
-            Write-Error "未找到匹配的.NET 7.0 SDK 版本"
-            exit 1
-        }
-        $msbuildPath = Join-Path -Path (Split-Path -Path $sdkPath -Parent) -ChildPath "MSBuild\Current\Bin\msbuild.exe"
-        & $msbuildPath Solstice.sln /p:Configuration=Release
-      shell: powershell
+    - name: Build DLL with dotnet build
+      run: dotnet build Solstice.sln -c Release
       working-directory: build
