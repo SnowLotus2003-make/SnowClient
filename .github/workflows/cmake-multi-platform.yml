@@ -7,8 +7,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+    - name: List Files
+      run: |
+        Write-Host "当前目录下的所有文件:"
+        Get-ChildItem
+      shell: powershell
     - name: Create build folder
       run: |
+        mkdir build
         Set-Location build
       shell: powershell
     - name: Setup MSYS2
