@@ -1,4 +1,4 @@
-name: Windows 构建1
+name: Windows 构建
 on:
   workflow_dispatch:
 jobs:
@@ -13,8 +13,12 @@ jobs:
         dotnet-version: '7.0.x'
     - name: 添加 MSBuild 路径到环境变量
       run: |
+        # 根据实际 Visual Studio 版本修改路径
         $msbuildPath = "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin"
         [Environment]::SetEnvironmentVariable("PATH", "$msbuildPath;${{ env.PATH }}", [EnvironmentVariableTarget]::Process)
+      shell: powershell
+    - name: 输出当前工作目录
+      run: Get-Location
       shell: powershell
     - name: 进入文件夹
       run: |
@@ -28,6 +32,6 @@ jobs:
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
     - name: build
-      run: "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\msbuild.exe" "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
+      run: &"C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\msbuild.exe" `
+        "D:\a\SnowClient\SnowClient\Solstice.sln" `/p:Configuration=Release`
       shell: powershell
-
