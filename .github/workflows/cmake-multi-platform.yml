@@ -11,24 +11,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v2.0.2
+      with:
+        cmake-version: 3.28
+
     - name: Create build folder
       run: |
         mkdir build
         cd build
       shell: powershell
 
-    - name: Copy CMakeLists.txt
-      run: Copy-Item -Path../CMakeLists.txt -Destination.
+    - name: Verify CMakeLists.txt Existence
+      run: |
+        $parentDir = Join-Path -Path.. -ChildPath CMakeLists.txt
+        if (-not (Test-Path $parentDir)) {
+            Write-Error "CMakeLists.txt 在上一级目录中未找到。"
+            exit 1
+        }
       shell: powershell
-      working-directory: build
-
-    - name: Setup CMake
-      uses: jwlawson/actions-setup-cmake@v2.0.2
-      with:
-        cmake-version: 3.28
 
     - name: Configure CMake
-      run: cmake .. -G "Visual Studio 17 2022" ..
+      run: cmake.. -G "Visual Studio 17 2022"
       shell: powershell
 
     - name: Build DLL
