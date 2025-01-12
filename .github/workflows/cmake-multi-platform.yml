@@ -37,4 +37,6 @@ jobs:
         $destinationPath = "D:\a\SnowClient\SnowClient\msbuild.exe"
         Copy-Item -Path $sourcePath -Destination $destinationPath -Force
       shell: powershell
-    
+    - name: build
+      run: msbuild "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
+      shell: powershell
