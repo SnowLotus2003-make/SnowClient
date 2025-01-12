@@ -1,7 +1,10 @@
-name: Build Solstice DLL Manually
+name: Build Solstice DLL from CMakeLists.txt
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build:
@@ -11,42 +14,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Cache CMake
-      uses: actions/cache@v3
+    - name: Install MSYS2
+      uses: msys2/setup-msys2@v2
       with:
-        path: C:\Program Files\CMake\bin
-        key: cmake-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt') }}
-
-    - name: Install dependencies
-      shell: cmd
-      run: |
-        vcpkg install spdlog:x64-windows magic_enum:x64-windows glm:x64-windows nlohmann_json:x64-windows DirectXTK:x64-windows cryptopp-cmake:x64-windows LuaBridge3:x64-windows
-        set "PATH=%PATH%;C:\Program Files\CMake\bin"
-
-    - name: Modify CMakeLists.txt for warning handling
-      shell: cmd
-      run: |
-        echo "if(MSVC)" >> ${{github.workspace}}\CMakeLists.txt
-        echo "  add_compile_options(/W4 /WX)" >> ${{github.workspace}}\CMakeLists.txt
-        echo "endif()" >> ${{github.workspace}}\CMakeLists.txt
+        update: true
+        install: pacman -S --noconfirm mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils
 
     - name: Configure CMake
-      shell: cmd
       run: |
-        cmake -B ${{github.workspace}}\build -A x64 -DCMAKE_BUILD_TYPE=Release
-      env:
-        PRIVATE_BUILD: 1
+        cmake -B ${{github.workspace}}/build -S ${{github.workspace}} -DCMAKE_BUILD_TYPE=Release
+      shell: bash
 
-    - name: Build Solstice DLL
-      shell: cmd
+    - name: Build
       run: |
-        cmake --build ${{github.workspace}}\build --config Release --target Solstice
+        cmake --build ${{github.workspace}}/build --config Release
+      shell: bash
 
-    - name: Upload DLL artifact
+    - name: Upload DLL
       uses: actions/upload-artifact@v3
       with:
-        name: Solstice DLL
-        path: ${{github.workspace}}\build\Release\Solstice.dll
+        name: Solstice.dll
+        path: ${{github.workspace}}/build/Solstice.dll
