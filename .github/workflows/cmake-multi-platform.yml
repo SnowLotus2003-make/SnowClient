@@ -28,6 +28,8 @@ jobs:
     - name: Configure CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
+    - name: Setup MSBuild
+      uses: actions/setup-msbuild@v1
     - name: Build DLL
       run: msbuild Solstice.sln /p:Configuration=Release
       working-directory: build
