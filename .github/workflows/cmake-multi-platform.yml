@@ -1,7 +1,11 @@
-name: Manual Build Solstice DLL from CMakeLists.txt
+name: Windows Build
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -11,26 +15,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install MSYS2
+    - name: Create build folder
+      run: New-Item -ItemType Directory -Force -Path build
+
+    - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
       with:
         update: true
-        install: pacman -S --noconfirm mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils
+        install: mingw-w64-x86_64-binutils
 
     - name: Configure CMake
+      shell: msys2 {0}
       run: |
-        cmake -B ${{github.workspace}}/build -S ${{github.workspace}} -DCMAKE_BUILD_TYPE=Release
-      shell: bash
+        cd build
+        cmake.. -G "Visual Studio 17 2022"..
 
-    - name: Build
+    - name: Build DLL
+      shell: cmd
       run: |
-        cmake --build ${{github.workspace}}/build --config Release --target SolsticeShaders
-        cmake --build ${{github.workspace}}/build --config Release --target generate_build_info
-        cmake --build ${{github.workspace}}/build --config Release --target Solstice
-      shell: bash
-
-    - name: Upload DLL
-      uses: actions/upload-artifact@v3
-      with:
-        name: Solstice.dll
-        path: ${{github.workspace}}/build/Solstice.dll
+        cd build
+        msbuild Solstice.sln /p:Configuration=Release
