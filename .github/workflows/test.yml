@@ -1,42 +1,29 @@
-name: Windows Build2
+name: Windows 构建
 on:
   workflow_dispatch:
 jobs:
   build:
     runs-on: windows-latest
     steps:
-    - name: Checkout code
+    - name: 检出代码
       uses: actions/checkout@v3
-    - name: Setup dotnet
+    - name: 安装 dotnet
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
-    - name: Setup Mono
-      run: |
-        choco install mono -y
-        # 查找msbuild.exe的路径
-        $msbuildExe = Get-Command msbuild -ErrorAction SilentlyContinue -CommandType Application | Where-Object { $_.Source -like "*mono*" }
-        if ($msbuildExe) {
-            $msbuildPath = $msbuildExe.Source
-            Write-Host "找到msbuild.exe路径: $msbuildPath"
-        } else {
-            Write-Error "未找到Mono中的msbuild.exe"
-            exit 1
-        }
-      shell: powershell
-    - name: Create build folder
+    - name: 设置 MSBuild
+      uses: actions/setup-msbuild@v1
+    - name: 进入文件夹
       run: |
         cd build
       shell: powershell
-    - name: Setup CMake
+    - name: 安装 CMake
       uses: jwlawson/actions-setup-cmake@v2.0.2
       with:
         cmake-version: 3.28
-    - name: Configure CMake
+    - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
-    - name: Build DLL with Mono msbuild
-      run: |
-        & $msbuildPath "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
+    - name: build
+      run: msbuild "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
       shell: powershell
-      working-directory: build
