@@ -1,7 +1,10 @@
-name: Manual Build Solstice DLL from CMakeLists.txt
+name: Build Solstice DLL from CMakeLists.txt
 
 on:
-  workflow_dispatch:  # 允许手动触发工作流
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build:
@@ -24,7 +27,10 @@ jobs:
 
     - name: Build
       run: |
-        cmake --build ${{github.workspace}}/build --config Release
+        # 尝试将构建命令拆分，避免可能的冲突
+        cmake --build ${{github.workspace}}/build --config Release --target SolsticeShaders
+        cmake --build ${{github.workspace}}/build --config Release --target generate_build_info
+        cmake --build ${{github.workspace}}/build --config Release --target Solstice
       shell: bash
 
     - name: Upload DLL
