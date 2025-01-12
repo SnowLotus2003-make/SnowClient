@@ -17,11 +17,10 @@ jobs:
         cd build
       shell: powershell
 
-    - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: mingw-w64-x86_64-binutils
+    - name: Copy CMakeLists.txt
+      run: Copy-Item -Path../CMakeLists.txt -Destination.
+      shell: powershell
+      working-directory: build
 
     - name: Setup CMake
       uses: jwlawson/actions-setup-cmake@v2.0.2
