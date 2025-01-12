@@ -22,17 +22,8 @@ jobs:
         cd build
       shell: powershell
 
-    - name: Verify CMakeLists.txt Existence
-      run: |
-        $parentDir = Join-Path -Path.. -ChildPath CMakeLists.txt
-        if (-not (Test-Path $parentDir)) {
-            Write-Error "CMakeLists.txt 在上一级目录中未找到。"
-            exit 1
-        }
-      shell: powershell
-
     - name: Configure CMake
-      run: cmake.. -G "Visual Studio 17 2022"
+      run: cmake .. -G "Visual Studio 17 2022"
       shell: powershell
 
     - name: Build DLL
