@@ -1,0 +1,50 @@
+name: Build Solstice DLL Manually
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Setup Visual Studio environment
+      uses: microsoft/setup-vscode@v1
+      with:
+        vs-code-extension-dir: 'C:\Users\runneradmin\AppData\Roaming\Code\User\extensions'
+
+    - name: Cache CMake
+      uses: actions/cache@v3
+      with:
+        path: C:\Program Files\CMake\bin
+        key: cmake-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt') }}
+
+    - name: Install dependencies
+      shell: cmd
+      run: |
+        vcpkg install spdlog:x64-windows magic_enum:x64-windows glm:x64-windows nlohmann_json:x64-windows DirectXTK:x64-windows cryptopp-cmake:x64-windows LuaBridge3:x64-windows
+        set "PATH=%PATH%;C:\Program Files\CMake\bin"
+
+    - name: Configure CMake
+      shell: cmd
+      run: |
+        cmake -B ${{github.workspace}}\build -A x64 -DCMAKE_BUILD_TYPE=Release
+      env:
+        PRIVATE_BUILD: 1
+
+    - name: Build Solstice DLL
+      shell: cmd
+      run: |
+        cmake --build ${{github.workspace}}\build --config Release --target Solstice
+
+    - name: Upload DLL artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Solstice DLL
+        path: ${{github.workspace}}\build\Release\Solstice.dll
