@@ -1,4 +1,4 @@
-name: Windows 构建
+name: Windows 构建1
 on:
   workflow_dispatch:
 jobs:
@@ -11,13 +11,10 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
-    - name: 添加.NET SDK 到环境变量
+    - name: 添加 MSBuild 路径到环境变量
       run: |
-        $dotnetPath = "${{ env.HOME }}/.dotnet/tools"
-        if (-not (Test-Path $dotnetPath)) {
-            New-Item -ItemType Directory -Force -Path $dotnetPath
-        }
-        [Environment]::SetEnvironmentVariable("PATH", "${{ env.HOME }}/.dotnet/tools;${{ env.PATH }}", [EnvironmentVariableTarget]::Process)
+        $msbuildPath = "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin"
+        [Environment]::SetEnvironmentVariable("PATH", "$msbuildPath;${{ env.PATH }}", [EnvironmentVariableTarget]::Process)
       shell: powershell
     - name: 进入文件夹
       run: |
@@ -32,3 +29,4 @@ jobs:
       shell: powershell
     - name: build
       run: msbuild "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
+      shell: powershell
