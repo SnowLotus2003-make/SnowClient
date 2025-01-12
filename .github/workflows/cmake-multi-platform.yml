@@ -15,19 +15,45 @@ jobs:
       run: |
         # 获取所有已安装的 SDK 信息
         $sdkInfo = & dotnet --list-sdks
+        Write-Host "dotnet --list-sdks 输出: $sdkInfo"
         if ($sdkInfo) {
             # 提取第一个 SDK 的安装路径
             $firstSdkLine = $sdkInfo.Split("`n")[0].Trim()
+            Write-Host "提取的第一行: $firstSdkLine"
             if ($firstSdkLine) {
-                $dotnetPath = $firstSdkLine.Split(' ')[0].Trim()
-                # 检查路径是否包含 \ 字符
-                if ($dotnetPath.Contains('\\')) {
-                    $lastIndex = $dotnetPath.LastIndexOf('\\')
-                    $dotnetPath = $dotnetPath.Substring(0, $lastIndex)
+                $parts = $firstSdkLine.Split(' ')
+                Write-Host "分割后的部分: $($parts -join ', ')"
+                if ($parts.Length -gt 0) {
+                    $dotnetPath = $parts[0].Trim()
+                    Write-Host "初始 dotnetPath: $dotnetPath"
+                    # 确保路径是一个有效的目录路径
+                    if (Test-Path -Path $dotnetPath -PathType Container) {
+                        $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
+                        Write-Host "有效的 msbuildPath: $msbuildPath"
+                    } else {
+                        # 如果路径无效，尝试从路径中提取目录部分
+                        $lastIndex = $dotnetPath.LastIndexOf('\\')
+                        if ($lastIndex -gt -1) {
+                            $dotnetPath = $dotnetPath.Substring(0, $lastIndex)
+                            if (Test-Path -Path $dotnetPath -PathType Container) {
+                                $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
+                                Write-Host "修正后的 msbuildPath: $msbuildPath"
+                            } else {
+                                Write-Host "无法找到有效的 dotnet 安装目录。"
+                            }
+                        } else {
+                            Write-Host "无法从路径中提取有效的目录。"
+                        }
+                    }
+                    Write-Host "##vso[task.setvariable variable=MSBUILD_PATH]$msbuildPath"
+                } else {
+                    Write-Host "提取的行中没有足够的部分。"
                 }
-                $msbuildPath = Join-Path -Path $dotnetPath -ChildPath'msbuild.exe'
-                Write-Host "##vso[task.setvariable variable=MSBUILD_PATH]$msbuildPath"
+            } else {
+                Write-Host "提取的行是空的。"
             }
+        } else {
+            Write-Host "dotnet --list-sdks 没有输出。"
         }
       shell: powershell
     - name: 安装 Visual Studio 构建工具
