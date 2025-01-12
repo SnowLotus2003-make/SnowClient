@@ -49,9 +49,7 @@ jobs:
                 } else {
                     Write-Host "提取的行中没有足够的部分。"
                 }
-            } else {
-                Write-Host "提取的行是空的。"
-            }
+            } # 这里添加一个 } 来闭合 if ($firstSdkLine) 语句块
         } else {
             Write-Host "dotnet --list-sdks 没有输出。"
         }
