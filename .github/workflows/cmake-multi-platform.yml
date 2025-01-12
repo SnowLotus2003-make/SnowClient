@@ -19,9 +19,9 @@ jobs:
       with:
         update: true
         install: mingw-w64-x86_64-binutils
-   
+
     - name: Install CMake
-      uses: actions/setup-cmake@v4
+      uses: actions/setup-cmake@v3  # 这里使用官方 action，并指定合适的版本，v3 可根据实际情况调整
 
     - name: Configure CMake
       run: cmake.. -G "Visual Studio 17 2022"..
