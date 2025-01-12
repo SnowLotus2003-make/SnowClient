@@ -51,4 +51,4 @@ jobs:
       shell: powershell
     - name: Build DLL
       run: msbuild Solstice.sln /p:Configuration=Release
-      working - directory: build
+      working-directory: build
