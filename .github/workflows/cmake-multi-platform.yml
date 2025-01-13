@@ -1,4 +1,4 @@
-name: Windows 构建
+name: Windows 构建1
 on:
   workflow_dispatch:
 jobs:
@@ -22,4 +22,4 @@ jobs:
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
     - name: build  
-      run: msbuild "D:\a\SnowClient\SnowClient\Solstice.sln" /m:8 /p:Configuration=Release /p:TreatWarningsAsErrors=false /p:ContinueOnError=true
+      run: msbuild "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release /p:ClCompileAdditionalOptions="/wd2668 /wd2374"
