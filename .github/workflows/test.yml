@@ -10,7 +10,7 @@ jobs:
     - name: 安装 dotnet
       uses: microsoft/setup-msbuild@v2
     - name: 输出当前工作目录
-      run: Get-Location
+      run: Get - Location
       shell: powershell
     - name: 进入文件夹
       run: |
@@ -25,16 +25,11 @@ jobs:
       run: |
         $source = "D:\a\SnowClient\SnowClient"
         $zipPath = "D:\a\SnowClient\SnowClient.zip"
-        Compress - Archive - Path $source -DestinationPath $zipPath
+        Compress - Archive - Path $source - DestinationPath $zipPath
       shell: powershell
-    - name: 上传压缩包为工件
-      uses: actions/upload - artifact@v3
-      with:
-        name: SnowClient - Archive
-        path: D:\a\SnowClient\SnowClient.zip
-    - name: 创建并上传 Release 资产
+    - name: 创建 Release
       id: create_release
-      uses: actions/release@v1
+      uses: softprops/action-create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -42,4 +37,12 @@ jobs:
         release_name: Release ${{ github.sha }}
         draft: false
         prerelease: false
-        files: D:\a\SnowClient\SnowClient.zip
+    - name: 上传压缩包到 Release
+      uses: softprops/action-upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        url: ${{ steps.create_release.outputs.upload_url }}
+        file: D:\a\SnowClient\SnowClient.zip
+        name: SnowClient.zip
+        label: SnowClient Archive
