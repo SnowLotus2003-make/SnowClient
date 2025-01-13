@@ -10,7 +10,7 @@ jobs:
     - name: 安装 dotnet
       uses: microsoft/setup-msbuild@v2
     - name: 输出当前工作目录
-      run: Get - Location
+      run: Get-Location
       shell: powershell
     - name: 进入文件夹
       run: |
@@ -21,30 +21,8 @@ jobs:
     - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
-    - name: 打包目录为 ZIP 压缩包
-      run: |
-        $source = "D:\a\SnowClient\SnowClient"
-        $zipPath = "D:\a\SnowClient\SnowClient.zip"
-        Compress - Archive - Path $source - DestinationPath $zipPath
-      shell: powershell
-    - name: 创建并发布 Release
-      id: create_release
-      uses: actions-toolkit/release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: 打包为 zip 压缩包
+      uses: actions/upload-artifact@v3
       with:
-        action: create
-        tag: ${{ github.sha }}
-        release - name: Release ${{ github.sha }}
-        body: ''
-        draft: false
-        prerelease: false
-    - name: 上传资产到 Release
-      uses: actions-toolkit/release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        action: upload - asset
-        file: D:\a\SnowClient\SnowClient.zip
-        asset - name: SnowClient.zip
-        release - id: ${{ steps.create_release.outputs.release_id }}
+        name: SnowClient.zip
+        path: D:\a\SnowClient\SnowClient
