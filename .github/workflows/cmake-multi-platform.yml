@@ -6,9 +6,9 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: 检出代码
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: 安装 dotnet
-      uses: microsoft/setup-msbuild@v1
+      uses: microsoft/setup-msbuild@v2
     - name: 输出当前工作目录
       run: Get-Location
       shell: powershell
@@ -18,8 +18,6 @@ jobs:
       shell: powershell
     - name: 安装 CMake
       uses: jwlawson/actions-setup-cmake@v2.0.2
-      with:
-        cmake-version: 3.28
     - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
