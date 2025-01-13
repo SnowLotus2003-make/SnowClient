@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: windows - latest
+    runs-on: windows-latest
     steps:
     - name: 检出代码
       uses: actions/checkout@v4
     - name: 安装 dotnet
-      uses: microsoft/setup - msbuild@v2
+      uses: microsoft/setup-msbuild@v2
     - name: 输出当前工作目录
       run: Get - Location
       shell: powershell
@@ -17,7 +17,7 @@ jobs:
         cd build
       shell: powershell
     - name: 安装 CMake
-      uses: jwlawson/actions - setup - cmake@v2.0.2
+      uses: jwlawson/actions-setup-cmake@v2.0.2
     - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
@@ -29,7 +29,7 @@ jobs:
       shell: powershell
     - name: 创建并发布 Release
       id: create_release
-      uses: actions - toolkit/release@v2
+      uses: actions-toolkit/release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -40,7 +40,7 @@ jobs:
         draft: false
         prerelease: false
     - name: 上传资产到 Release
-      uses: actions - toolkit/release@v2
+      uses: actions-toolkit/release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
