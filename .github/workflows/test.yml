@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows - latest
     steps:
     - name: 检出代码
       uses: actions/checkout@v4
     - name: 安装 dotnet
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup - msbuild@v2
     - name: 输出当前工作目录
       run: Get - Location
       shell: powershell
@@ -17,7 +17,7 @@ jobs:
         cd build
       shell: powershell
     - name: 安装 CMake
-      uses: jwlawson/actions-setup-cmake@v2.0.2
+      uses: jwlawson/actions - setup - cmake@v2.0.2
     - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
@@ -27,22 +27,24 @@ jobs:
         $zipPath = "D:\a\SnowClient\SnowClient.zip"
         Compress - Archive - Path $source - DestinationPath $zipPath
       shell: powershell
-    - name: 创建 Release
+    - name: 创建并发布 Release
       id: create_release
-      uses: softprops/action-create-release@v1
+      uses: actions - toolkit/release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.sha }}
-        release_name: Release ${{ github.sha }}
+        action: create
+        tag: ${{ github.sha }}
+        release - name: Release ${{ github.sha }}
+        body: ''
         draft: false
         prerelease: false
-    - name: 上传压缩包到 Release
-      uses: softprops/action-upload-release-asset@v1
+    - name: 上传资产到 Release
+      uses: actions - toolkit/release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        url: ${{ steps.create_release.outputs.upload_url }}
+        action: upload - asset
         file: D:\a\SnowClient\SnowClient.zip
-        name: SnowClient.zip
-        label: SnowClient Archive
+        asset - name: SnowClient.zip
+        release - id: ${{ steps.create_release.outputs.release_id }}
