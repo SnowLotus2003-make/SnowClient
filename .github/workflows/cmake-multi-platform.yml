@@ -18,20 +18,23 @@ jobs:
       shell: powershell
     - name: 安装 CMake
       uses: jwlawson/actions-setup-cmake@v2.0.2
-    - name: 配置 CMake 并添加替换标志
+    - name: 配置 CMake 并添加替换
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022" -DREPLACE_AMBIGUOUS_CALL=ON
       shell: powershell
-    - name: 替换代码
-      if: env.REPLACE_AMBIGUOUS_CALL == 'ON'
+    - name: Build and Resolve function call ambiguity
+      shell: cmd
       run: |
-        $file = "D:\a\SnowClient\SnowClient\_deps\directxtk-src\Audio\WAVFileReader.cpp"
-        (Get-Content $file) | ForEach-Object {
-          if ($_ -match 'DirectX::safe_handle\((.*?)\)') {
-            # 这里假设 safe_handle 接收一个句柄类型参数，将其替换为带明确类型的调用
-            $_ = $_ -replace 'DirectX::safe_handle\((.*?)\)', 'DirectX::safe_handle<HANDLE>(\1)'
-          }
-          $_
-        } | Set-Content $file
-      shell: powershell
+        cmake --build build --config Release
+        set source_file=build\_deps\directxtk-src\Audio\WAVFileReader.cpp
+        set temp_file=%temp%\WAVFileReader_temp.cpp
+        type nul > %temp_file%
+        for /f "delims=" %%i in (%source_file%) do (
+          set line=%%i
+          setlocal enabledelayedexpansion
+          set new_line=!line:safe_handle(=DirectX::safe_handle(!
+          echo.!new_line!>> %temp_file%
+          endlocal
+        )
+        move /y %temp_file% %source_file%      
     - name: build
       run: msbuild "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
