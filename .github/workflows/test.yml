@@ -27,9 +27,14 @@ jobs:
         $zipPath = "D:\a\SnowClient\SnowClient.zip"
         Compress - Archive - Path $source -DestinationPath $zipPath
       shell: powershell
+    - name: 上传压缩包为工件
+      uses: actions/upload - artifact@v3
+      with:
+        name: SnowClient - Archive
+        path: D:\a\SnowClient\SnowClient.zip
     - name: 创建或获取 Release
       id: create_release
-      uses: actions/create - release@v1
+      uses: actions/release - action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -37,12 +42,13 @@ jobs:
         release_name: Release ${{ github.sha }}
         draft: false
         prerelease: false
-    - name: 上传压缩包到 Release
-      uses: actions/upload - release - asset@v1
+    - name: 将工件附加到 Release
+      uses: actions/release - action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: D:\a\SnowClient\SnowClient.zip
-        asset_name: SnowClient.zip
-        asset_content_type: application/zip
+        tag_name: ${{ github.sha }}
+        release_name: Release ${{ github.sha }}
+        artifacts: SnowClient - Archive
+        draft: false
+        prerelease: false
