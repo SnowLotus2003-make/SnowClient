@@ -18,13 +18,12 @@ jobs:
       shell: powershell
     - name: 安装 CMake
       uses: jwlawson/actions-setup-cmake@v2.0.2
-    - name: 配置 CMake 并添加替换
-      run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022" -DREPLACE_AMBIGUOUS_CALL=ON
+    - name: 配置 CMake
+      run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
-    - name: Build and Resolve function call ambiguity
+    - name: 解决函数调用冲突
       shell: cmd
       run: |
-        cmake --build build --config Release
         set source_file=build\_deps\directxtk-src\Audio\WAVFileReader.cpp
         set temp_file=%temp%\WAVFileReader_temp.cpp
         type nul > %temp_file%
