@@ -34,7 +34,7 @@ jobs:
         path: D:\a\SnowClient\SnowClient.zip
     - name: 创建或获取 Release
       id: create_release
-      uses: actions/release - action@v2
+      uses: actions/create - release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -42,13 +42,12 @@ jobs:
         release_name: Release ${{ github.sha }}
         draft: false
         prerelease: false
-    - name: 将工件附加到 Release
-      uses: actions/release - action@v2
+    - name: 上传工件到 Release
+      uses: actions/upload - release - asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.sha }}
-        release_name: Release ${{ github.sha }}
-        artifacts: SnowClient - Archive
-        draft: false
-        prerelease: false
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: D:\a\SnowClient\SnowClient.zip
+        asset_name: SnowClient.zip
+        asset_content_type: application/zip
