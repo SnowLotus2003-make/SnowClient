@@ -21,10 +21,28 @@ jobs:
     - name: 配置 CMake
       run: cmake "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
       shell: powershell
-    - name: 明确命名空间（示例修复）
+    - name: 打包目录为 ZIP 压缩包
       run: |
-        # 在 CMake 配置中添加预处理定义
-        cmake -DADDITIONAL_DEFINITIONS="-DDIRECTX_NO_AMBIGUOUS_FUNCTION_CALLS" "D:\a\SnowClient\SnowClient" -G "Visual Studio 17 2022"
+        $source = "D:\a\SnowClient\SnowClient"
+        $zipPath = "D:\a\SnowClient\SnowClient.zip"
+        Compress - Archive - Path $source -DestinationPath $zipPath
       shell: powershell
-    - name: build  
-      run: msbuild "D:\a\SnowClient\SnowClient\Solstice.sln" /p:Configuration=Release
+    - name: 创建或获取 Release
+      id: create_release
+      uses: actions/create - release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.sha }}
+        release_name: Release ${{ github.sha }}
+        draft: false
+        prerelease: false
+    - name: 上传压缩包到 Release
+      uses: actions/upload - release - asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: D:\a\SnowClient\SnowClient.zip
+        asset_name: SnowClient.zip
+        asset_content_type: application/zip
