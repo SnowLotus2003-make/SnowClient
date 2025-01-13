@@ -24,7 +24,7 @@ jobs:
     - name: 解决函数调用冲突
       shell: cmd
       run: |
-        set source_file=build\_deps\directxtk-src\Audio\WAVFileReader.cpp
+        set source_file=_deps\directxtk-src\Audio\WAVFileReader.cpp
         set temp_file=%temp%\WAVFileReader_temp.cpp
         type nul > %temp_file%
         for /f "delims=" %%i in (%source_file%) do (
